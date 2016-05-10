@@ -1,2 +1,2 @@
 # gocd_vm_builder
-GoCD VM Builder
+Automate VM image building process

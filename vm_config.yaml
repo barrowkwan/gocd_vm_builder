@@ -1,0 +1,30 @@
+'gocd_vm_builder':
+  'output_dir': "box"
+  'http_dir': "http"
+  'http_template_dir': "templates/http"
+  'ssh_username': "vm_builder"
+  'ssh_password': "vm_builder"
+  'root_password': "vm_builder"
+  'kickstart_script': "ks.cfg"
+  'packer_dir' : "packer"
+  'packer_template_dir' : "templates/packer"
+  'with_cloud_init' : false
+  'with_chef_client' : false
+  'with_gocd_agent' : false
+  'with_gocd_metadata' : false
+'centos':
+  '7.2':
+    'url': "http://mirrors.kernel.org/centos/7.2.1511/os/x86_64"
+    'iso_url': "http://mirrors.kernel.org/centos/7.2.1511/isos/x86_64/CentOS-7-x86_64-NetInstall-1511.iso"
+    'iso_checksum_type': "sha256"
+    'iso_checksum': "9ed9ffb5d89ab8cca834afce354daa70a21dcb410f58287d6316259ff89758f5"
+  '6.7':
+    'url': "http://mirrors.kernel.org/centos/6.7/os/x86_64"
+    'iso_url': "http://mirrors.kernel.org/centos/6.7/isos/x86_64/CentOS-6.7-x86_64-netinstall.iso"
+    'iso_checksum_type': "sha256"
+    'iso_checksum': "411da8c3f66839eef9ae47bf4515cc0b82f2a1dfc7b2d5bde2d203ca7e3220f3"
+'epel':
+  '6':
+    'url': "http://mirrors.kernel.org/fedora-epel/6/x86_64"
+  '7':
+    'url': "http://mirrors.kernel.org/fedora-epel/7/x86_64"

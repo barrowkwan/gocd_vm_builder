@@ -1,0 +1,89 @@
+install
+text
+lang en_US.UTF-8
+keyboard us
+url --url <%= centos_url %>
+timezone America/Los_Angele --utc <% if vm_distro_version.to_i >= 7 %>--ntpservers 0.centos.pool.ntp.org,1.centos.pool.ntp.org,2.centos.pool.ntp.org,3.centos.pool.ntp.org<% end %>
+network --onboot=yes --bootproto=dhcp --noipv6 --onboot=on --device=eth0
+reboot
+rootpw <%= ENV['ROOT_PASSWORD'] || vm_config['gocd_vm_builder']['root_password']%>
+firewall --disabled
+selinux --disabled
+authconfig --enableshadow --passalgo=sha512
+zerombr
+skipx
+bootloader --location=mbr --append="crashkernel=auto rhgb quiet net.ifnames=0" --timeout=1
+clearpart --all --initlabel
+<% if vm_distro_version.to_i >= 7 %>
+part / --fstype xfs --size=1 --grow  --asprimary<% else %>
+part / --fstype ext4 --size=1 --grow  --asprimary<% end %>
+
+<% if epel_url %>
+repo --name=epel --baseurl=<%= epel_url %>
+<% end %>
+
+services --disabled="avahi-daemon,iscsi,iscsid,firstboot,kdump" --enabled="network,sshd,rsyslog,tuned,sssd"
+
+%packages --nobase --excludedocs --instLangs=en_US.utf8
+openssh-server
+openssh-clients
+ntp
+sudo
+kernel-headers
+kernel-devel
+gcc
+make
+perl
+sed
+curl
+wget
+bzip2
+patch
+nfs-utils
+net-tools
+vim-minimal
+git
+binutils
+<% if ENV['CLOUD_INIT'] || vm_config['gocd_vm_builder']['with_cloud_init'] %>
+cloud-init
+cloud-utils
+cloud-utils-growpart<% end %>
+-fprintd-pam
+-intltool
+-mariadb-libs
+-postfix
+which
+-*-firmware
+-b43-openfwwf
+-dracut-config-rescue
+-kernel-tools
+-libsysfs
+-microcode_ctl
+-NetworkManager*
+-postfix
+-rdma
+%end
+
+%post --log=/root/ks.log
+
+/bin/echo "Red Hat Enterprise Linux <%= vm_distro_version %> installed on `/bin/date`" > /etc/motd
+
+/sbin/chkconfig kdump off
+/sbin/chkconfig ntpd on
+
+/bin/sed -i 's/SELINUX=enforcing/SELINUX=disabled/' /etc/selinux/config
+/usr/sbin/setenforce 0 > /dev/null
+
+/bin/sed -i 's|\(^PasswordAuthentication \)no|\1yes|' /etc/ssh/sshd_config
+/bin/sed -i 's|\(^PermitRootLogin \)no|\1yes|' /etc/ssh/sshd_config
+
+<% if ENV['CLOUD_INIT'] || vm_config['gocd_vm_builder']['with_cloud_init'] %>
+/bin/sed -i '/^ssh_pwauth/c ssh_pwauth: 1' /etc/cloud/cloud.cfg
+/bin/sed -i '/^disable_root/c disable_root: 0' /etc/cloud/cloud.cfg<% end %>
+
+/usr/bin/yum clean all
+/usr/bin/yum makecache
+/usr/bin/yum -y update
+/usr/bin/yum -y remove linux-firmware
+
+%end
