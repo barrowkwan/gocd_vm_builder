@@ -71,15 +71,56 @@ namespace :gocd_vm_builder do
           binding)
 
     puts "Packer start building VM"
-    output= %x{packer build "#{File.dirname(__FILE__)}"/"#{vm_config['gocd_vm_builder']['packer_dir']}"/packer.json}
-    puts output
+    #output= %x{packer build "#{File.dirname(__FILE__)}"/"#{vm_config['gocd_vm_builder']['packer_dir']}"/packer.json}
+    #puts output
 
+
+    upload_openstack_image({
+      :packer_vm_version => vm_distro_version,
+      :output_dir => vm_config['gocd_vm_builder']['output_dir'],
+      :vm_target => vm_target,
+      :gocd_agent => vm_config['gocd_vm_builder']['with_gocd_agent'],
+      :cloud_init => vm_config['gocd_vm_builder']['with_cloud_init']
+      })
+      
   end
 
 end
 
 def upload_openstack_image(options={})
-  puts "gocd_agent => #{options[:gocd_agent]}"
+  
+  puts "Upload the Image to OpenStack"
+  get_image_list = "glance image-list --owner #{ENV['OS_TENANT_ID']} --property-filter packer_vm_version=#{options[:vm_target]}-#{options[:packer_vm_version]}  --property-filter gocd_agent=#{ENV['GOCD_AGENT'] || options[:gocd_agent]} --property-filter cloud_init=#{ENV['CLOUD_INIT'] || options[:cloud_init]}"
+  get_image = IO.popen(get_image_list)
+  output = get_image.readlines(sep="\n")
+  get_image.close
+  if output.size > 5
+    fail "Glance found more than one image.  Please clean up the image before you run this task again"
+  else
+    puts "========================================================================"
+    puts "Glance cannot found image to delete : #{ENV['OS_TENANT_ID']} packer_vm_version=#{options[:vm_target]}-#{options[:packer_vm_version]} gocd_agent=#{ENV['GOCD_AGENT'] || options[:gocd_agent]} cloud_init=#{ENV['CLOUD_INIT'] || options[:cloud_init]}\n#{output}"
+    puts "========================================================================"
+    output.each do |line|
+      image_data = line.split(/[|\s]+/)
+      if image_data[6].eql?("active")
+        remove_image_list = "glance image-delete #{image_data[1]}"
+        remove_image = IO.popen(remove_image_list)
+        check_result = remove_image.readlines
+        remove_image.close
+        get_image_list = "glance image-list --owner #{ENV['OS_TENANT_ID']} --property-filter packer_vm_version=#{options[:vm_target]}-#{options[:packer_vm_version]} --property-filter gocd_agent=#{ENV['GOCD_AGENT'] || options[:gocd_agent]} --property-filter cloud_init=#{ENV['CLOUD_INIT'] || options[:cloud_init]}"
+        get_image = IO.popen(get_image_list)
+        output = get_image.readlines(sep="\n")
+        get_image.close
+        fail "Glance cannot delete image with id #{image_data[1]}" unless output.size == 4
+      end
+    end
+  end
+  upload_image_cmd = "glance image-create --owner #{ENV['OS_TENANT_ID']} --name packer-#{options[:vm_target]}-#{options[:packer_vm_version]} --property vm_build_version=#{ENV['vm_build_version']} --property packer_vm_version=centos-#{vm_distro_version} --property gocd_agent=#{ENV['GOCD_AGENT'] || options[:gocd_agent]} --property cloud_init=#{ENV['CLOUD_INIT'] || options[:cloud_init]} --human-readable --disk-format qcow2 --is-public True --container-format bare --progress  --file #{vm_config['gocd_vm_builder']['output_dir']}/centos#{vm_distro_version.to_i.to_s}/qemu-#{options[:vm_target]}-#{vm_distro_version}-x86_64.img"
+  puts upload_image_cmd
+  upload_image = IO.popen(upload_image_cmd)
+  output = upload_image.readlines(sep="\n")
+  upload_image.close
+
 end
 
 def render_template(template, output, scope)
