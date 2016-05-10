@@ -71,8 +71,8 @@ namespace :gocd_vm_builder do
           binding)
 
     puts "Packer start building VM"
-    #output= %x{packer build "#{File.dirname(__FILE__)}"/"#{vm_config['gocd_vm_builder']['packer_dir']}"/packer.json}
-    #puts output
+    output= %x{packer build "#{File.dirname(__FILE__)}"/"#{vm_config['gocd_vm_builder']['packer_dir']}"/packer.json}
+    puts output
 
 
     upload_openstack_image({
