@@ -96,10 +96,11 @@ def upload_openstack_image(options={})
   get_image.close
   if output.size > 5
     fail "Glance found more than one image.  Please clean up the image before you run this task again"
-  else
+  elsif output.size < 5
     puts "========================================================================"
     puts "Glance cannot found image to delete : #{ENV['OS_TENANT_ID']} packer_vm_version=#{options[:vm_target]}-#{options[:packer_vm_version]} gocd_agent=#{ENV['GOCD_AGENT'] || options[:gocd_agent]} cloud_init=#{ENV['CLOUD_INIT'] || options[:cloud_init]}\n#{output}"
     puts "========================================================================"
+  else
     output.each do |line|
       image_data = line.split(/[|\s]+/)
       if image_data[6].eql?("active")
