@@ -116,7 +116,7 @@ def upload_openstack_image(options={})
       end
     end
   end
-  upload_image_cmd = "glance image-create --owner #{ENV['OS_TENANT_ID']} --name packer-#{options[:vm_target]}-#{options[:packer_vm_version]} --property vm_build_version=#{ENV['vm_build_version']} --property packer_vm_version=#{options[:vm_target]}-#{options[:packer_vm_version]} --property gocd_agent=#{ENV['GOCD_AGENT'] || options[:gocd_agent]} --property cloud_init=#{ENV['CLOUD_INIT'] || options[:cloud_init]} --human-readable --disk-format qcow2 --is-public True --container-format bare --progress  --file #{:options[:output_dir]}/#{options[:vm_target]}#{options[:packer_vm_version.to_i.to_s]}/qemu-#{options[:vm_target]}#{options[:packer_vm_version]}-x86_64.img"
+  upload_image_cmd = "glance image-create --owner #{ENV['OS_TENANT_ID']} --name packer-#{options[:vm_target]}-#{options[:packer_vm_version]} --property vm_build_version=#{ENV['vm_build_version']} --property packer_vm_version=#{options[:vm_target]}-#{options[:packer_vm_version]} --property gocd_agent=#{ENV['GOCD_AGENT'] || options[:gocd_agent]} --property cloud_init=#{ENV['CLOUD_INIT'] || options[:cloud_init]} --human-readable --disk-format qcow2 --is-public True --container-format bare --progress  --file #{:options[:output_dir]}/#{options[:vm_target]}#{options[:packer_vm_version].to_i.to_s}/qemu-#{options[:vm_target]}#{options[:packer_vm_version]}-x86_64.img"
   puts upload_image_cmd
   upload_image = IO.popen(upload_image_cmd)
   output = upload_image.readlines(sep="\n")
