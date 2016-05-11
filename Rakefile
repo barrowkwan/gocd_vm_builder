@@ -120,6 +120,7 @@ def upload_openstack_image(options={})
   puts upload_image_cmd
   upload_image = IO.popen(upload_image_cmd)
   output = upload_image.readlines(sep="\n")
+  puts output
   upload_image.close
 
 end
