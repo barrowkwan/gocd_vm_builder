@@ -1,4 +1,5 @@
 'gocd_vm_builder':
+  'vm_type': "virtualbox-iso"
   'output_dir': "box"
   'http_dir': "http"
   'http_template_dir': "templates/http"

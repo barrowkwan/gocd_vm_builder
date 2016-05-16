@@ -42,7 +42,7 @@
 	"provisioners": [<% if ((ENV['GOCD_AGENT'] || vm_config['gocd_vm_builder']['with_gocd_agent'] ) && (ENV['CLOUD_INIT'] || vm_config['gocd_vm_builder']['with_cloud_init'])) %>{
 		"type": "file",
 		"source": "guest_scripts/cc_openstack_gocd.py",
-		"destination": "/usr/lib/python2.7/site-packages/cloudinit/config/cc_openstack_gocd.py"
+		"destination": "/usr/lib/python2.6/site-packages/cloudinit/config/cc_openstack_gocd.py"
 	},<% end %>{
 		"type": "shell",
 		"override": {
