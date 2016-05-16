@@ -47,6 +47,9 @@ def replace_config(goagent_file, goagent_key, goagent_value):
 def handle(name, cfg, cloud, log, _args):
   try:
 
+    # Make sure Go Agent is not running
+    util.subp(['service', 'go-agent', 'stop'])
+
     # Go Agent Config Prefix
     go_agent_prefix = "goagent_"
     go_agent_default = "/etc/default/go-agent"
@@ -58,8 +61,6 @@ def handle(name, cfg, cloud, log, _args):
       util.chownbyname(go_server_config_dir,"go","go")
     go_server_config = go_server_config_dir + "/autoregister.properties"
 
-    # Make sure Go Agent is not running
-    util.subp(['service', 'go-agent', 'stop'])
 
     md = cloud.datasource.metadata
     for key in md['meta']:

@@ -1,0 +1,60 @@
+{
+	"variables": {
+		"created_at": "{{isotime \"2006-01-02_03_04_05\"}}",
+		"cpus": "1",
+		"disk_size": "40000",
+		"headless": "false",
+		"memory": "2048"
+	},
+	"builders": [{
+		"type": "qemu",
+		"iso_url": "<%= centos_iso_url %>",
+		"iso_checksum": "<%= centos_iso_checksum %>",
+		"iso_checksum_type": "<%= centos_iso_checksum_type %>",
+		"output_directory": "<%= vm_config['gocd_vm_builder']['output_dir'] %>/centos<%= vm_distro_version.to_i.to_s %>",
+		"disk_size": "{{user `disk_size`}}",
+		"format": "qcow2",
+		"headless": "{{user `headless`}}",
+		"accelerator": "kvm",
+		"http_directory": "http",
+		"http_port_min": 10082,
+		"http_port_max": 10089,
+		"ssh_host_port_min": 2222,
+		"ssh_host_port_max": 2229,
+		"ssh_username": "<%= ENV['SSH_USERNAME'] || vm_config['gocd_vm_builder']['ssh_username'] %>",
+		"ssh_password": "<%= ENV['SSH_PASSWORD'] || vm_config['gocd_vm_builder']['ssh_password'] %>",
+		"ssh_port": 22,
+		"ssh_timeout": "30m",
+		"vm_name": "qemu-centos<%= vm_distro_version %><%= (ENV['CLOUD_INIT'] || vm_config['gocd_vm_builder']['with_cloud_init']) ? "-cloud_init" : ""  %><%= (ENV['GOCD_AGENT'] || vm_config['gocd_vm_builder']['with_gocd_agent']) ? "-goagent" : ""  %>-x86_64.img",
+		"net_device": "virtio-net",
+		"disk_interface": "virtio",
+		"boot_wait": "5s",
+		"boot_command": [
+			"<wait><esc><esc>",
+			"linux ks=http://{{.HTTPIP}}:{{.HTTPPort}}/<%= vm_config['gocd_vm_builder']['kickstart_script']%> biosdevname=0 net.ifnames=0",
+			"<enter>"
+		],
+		"shutdown_command": "shutdown -P now",
+		"qemuargs":[
+			["-m", "{{user `memory`}}"]
+		]
+	}],
+	"provisioners": [<% if ((ENV['GOCD_AGENT'] || vm_config['gocd_vm_builder']['with_gocd_agent'] ) && (ENV['CLOUD_INIT'] || vm_config['gocd_vm_builder']['with_cloud_init'])) %>{
+		"type": "file",
+		"source": "guest_scripts/cc_openstack_gocd.py",
+		"destination": "/usr/lib/python2.7/site-packages/cloudinit/config/cc_openstack_gocd.py"
+	},<% end %>{
+		"type": "shell",
+		"override": {
+			"qemu": {
+				"execute_command": "sh '{{.Path}}'",
+				"scripts": [
+          "scripts/centos<%= vm_distro_version.to_i.to_s %>/base.sh",
+          "scripts/centos<%= vm_distro_version.to_i.to_s %>/networks.sh",<% if ENV['CLOUD_INIT'] || vm_config['gocd_vm_builder']['with_cloud_init'] %>
+          "scripts/centos<%= vm_distro_version.to_i.to_s %>/cloud-init.sh", <% end %><% if ENV['GOCD_AGENT'] || vm_config['gocd_vm_builder']['with_gocd_agent'] %>
+          "scripts/centos<%= vm_distro_version.to_i.to_s %>/gocd_agent.sh", <% end %>
+          "scripts/centos<%= vm_distro_version.to_i.to_s %>/cleanup.sh"				]
+			}
+		}
+	}]
+}
