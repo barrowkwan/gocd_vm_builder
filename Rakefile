@@ -41,6 +41,9 @@ namespace :gocd_vm_builder do
     when 'centos'
       puts "Building CentOS VM"
       Rake::Task["gocd_vm_builder:centos_vm"].invoke()
+    when 'ubuntu'
+      puts "Building Ubuntu VM"
+      Rake::Task["gocd_vm_builder:ubuntu_vm"].invoke()
     else
       puts "Nothing to build"
     end
