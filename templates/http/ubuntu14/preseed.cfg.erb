@@ -1,0 +1,70 @@
+# local UTF-8
+d-i debian-installer/language string en
+d-i debian-installer/locale string en_US.UTF-8
+d-i localechooser/preferred-locale string en_US.UTF-8
+d-i localechooser/supported-locales en_US.UTF-8
+
+# keyboards
+d-i console-setup/ask_detect boolean false
+d-i keyboard-configuration/layout select USA
+d-i keyboard-configuration/variant select USA
+d-i keyboard-configuration/modelcode string pc105
+
+# clock and timezone
+d-i time/zone string UTC
+d-i clock-setup/utc-auto boolean true
+d-i clock-setup/utc boolean true
+
+# network
+d-i netcfg/get_hostname string this-host
+d-i netcfg/get_domain string this-host
+
+# basic configuration
+d-i debconf debconf/frontend select Noninteractive
+
+# language support
+d-i pkgsel/install-language-support boolean false
+tasksel tasksel/first multiselect standard, ubuntu-server
+
+# partition
+d-i partman-auto/method string lvm
+d-i partman-lvm/confirm boolean true
+d-i partman-lvm/device_remove_lvm boolean true
+d-i partman-auto/choose_recipe select atomic
+d-i partman/confirm_write_new_label boolean true
+d-i partman/confirm_nooverwrite boolean true
+d-i partman/choose_partition select finish
+d-i partman/confirm boolean true
+d-i partman-lvm/confirm boolean true
+d-i partman-lvm/confirm_nooverwrite boolean true
+d-i partman-auto-lvm/guided_size string max
+
+# Proxy
+d-i mirror/http/proxy string
+
+# Root and User account
+# Root and User account
+d-i passwd/user-fullname string <%= ENV['SSH_USERNAME'].nil? ? ((!vm_config['gocd_vm_builder'].nil? && !vm_config['gocd_vm_builder']['ssh_username'].nil?) ? vm_config['gocd_vm_builder']['ssh_username'] : 'vagrant') : ENV['SSH_USERNAME'] %>
+d-i passwd/username string <%= ENV['SSH_USERNAME'].nil? ? ((!vm_config['gocd_vm_builder'].nil? && !vm_config['gocd_vm_builder']['ssh_username'].nil?) ? vm_config['gocd_vm_builder']['ssh_username'] : 'vagrant') : ENV['SSH_USERNAME'] %>
+d-i passwd/user-password password <%= ENV['SSH_PASSWORD'].nil? ? ((!vm_config['gocd_vm_builder'].nil? && !vm_config['gocd_vm_builder']['ssh_password'].nil?) ? vm_config['gocd_vm_builder']['ssh_password'] : 'vagrant') : ENV['SSH_PASSWORD'] %>
+d-i passwd/user-password-again password <%= ENV['SSH_PASSWORD'].nil? ? ((!vm_config['gocd_vm_builder'].nil? && !vm_config['gocd_vm_builder']['ssh_password'].nil?) ? vm_config['gocd_vm_builder']['ssh_password'] : 'vagrant') : ENV['SSH_PASSWORD'] %>
+d-i user-setup/encrypt-home boolean false
+d-i user-setup/allow-password-weak boolean true
+
+# No language support packages.
+d-i	pkgsel/install-language-support boolean false
+
+# Other package
+d-i pkgsel/include string build-essential ssh
+
+# Update policy
+d-i pkgsel/update-policy select none
+
+# Full Upgrade
+d-i pkgsel/upgrade select full-upgrade
+
+# Grub
+d-i grub-installer/only_debian boolean true
+
+# reboot
+d-i finish-install/reboot_in_progress note

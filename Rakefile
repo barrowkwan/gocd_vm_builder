@@ -46,7 +46,42 @@ namespace :gocd_vm_builder do
     end
   end
   
+  task :ubuntu_vm do
+    vm_distro_version = ENV['VERSION'].nil? ? "" : ENV['VERSION']
+    vm_target = ENV['TARGET'].nil? ? "" : ENV['TARGET']
+    
 
+    vm_config = load_vm_config
+    ubuntu_url=vm_config['ubuntu'][vm_distro_version]['url']
+		ubuntu_iso_url=vm_config['ubuntu'][vm_distro_version]['iso_url']
+		ubuntu_iso_checksum=vm_config['ubuntu'][vm_distro_version]['iso_checksum']
+		ubuntu_iso_checksum_type=vm_config['ubuntu'][vm_distro_version]['iso_checksum_type']
+    
+    puts "Generate Kickstart Script"
+		render_template("#{vm_config['gocd_vm_builder']['http_template_dir']}/#{vm_target}#{vm_distro_version.to_i.to_s}/preseed.cfg.erb",
+      "#{vm_config['gocd_vm_builder']['http_dir']}/preeed.cfg",
+      binding)
+
+    puts "Generate Packer Configuration"
+    render_template("#{vm_config['gocd_vm_builder']['packer_template_dir']}/#{vm_target}#{vm_distro_version.to_i.to_s}/packer.json.erb",
+          "#{vm_config['gocd_vm_builder']['packer_dir']}/packer.json",
+          binding)
+
+    puts "Packer start building VM"
+    output= %x{packer build "#{File.dirname(__FILE__)}"/"#{vm_config['gocd_vm_builder']['packer_dir']}"/packer.json}
+    puts output
+
+
+    upload_openstack_image({
+      :packer_vm_version => vm_distro_version,
+      :output_dir => vm_config['gocd_vm_builder']['output_dir'],
+      :vm_target => vm_target,
+      :gocd_agent => vm_config['gocd_vm_builder']['with_gocd_agent'],
+      :cloud_init => vm_config['gocd_vm_builder']['with_cloud_init']
+      })
+  end
+  
+  
 	task :centos_vm do
 
     vm_distro_version = ENV['VERSION'].nil? ? "" : ENV['VERSION']

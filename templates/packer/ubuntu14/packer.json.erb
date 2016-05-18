@@ -13,10 +13,10 @@
     "type": "virtualbox-iso",
     "guest_os_type": "Redhat_64",
     <% end %>
-		"iso_url": "<%= centos_iso_url %>",
-		"iso_checksum": "<%= centos_iso_checksum %>",
-		"iso_checksum_type": "<%= centos_iso_checksum_type %>",
-		"output_directory": "<%= vm_config['gocd_vm_builder']['output_dir'] %>/centos<%= vm_distro_version.to_i.to_s %>",
+		"iso_url": "<%= ubuntu_iso_url %>",
+		"iso_checksum": "<%= ubuntu_iso_checksum %>",
+		"iso_checksum_type": "<%= ubuntu_iso_checksum_type %>",
+		"output_directory": "<%= vm_config['gocd_vm_builder']['output_dir'] %>/ubuntu<%= vm_distro_version.to_i.to_s %>",
 		"disk_size": "{{user `disk_size`}}",
 		"format": "qcow2",
 		"headless": "{{user `headless`}}",
@@ -30,16 +30,22 @@
 		"ssh_password": "<%= ENV['SSH_PASSWORD'] || vm_config['gocd_vm_builder']['ssh_password'] %>",
 		"ssh_port": 22,
 		"ssh_timeout": "30m",
-		"vm_name": "qemu-centos<%= vm_distro_version %><%= (ENV['CLOUD_INIT'] || vm_config['gocd_vm_builder']['with_cloud_init']) ? "-cloud_init" : ""  %><%= (ENV['GOCD_AGENT'] || vm_config['gocd_vm_builder']['with_gocd_agent']) ? "-goagent" : ""  %>-x86_64.img",
+		"vm_name": "qemu-ubuntu<%= vm_distro_version %><%= (ENV['CLOUD_INIT'] || vm_config['gocd_vm_builder']['with_cloud_init']) ? "-cloud_init" : ""  %><%= (ENV['GOCD_AGENT'] || vm_config['gocd_vm_builder']['with_gocd_agent']) ? "-goagent" : ""  %>-x86_64.img",
 		"net_device": "virtio-net",
 		"disk_interface": "virtio",
 		"boot_wait": "5s",
 		"boot_command": [
-			"<wait><esc><esc>",
-			"linux ks=http://{{.HTTPIP}}:{{.HTTPPort}}/<%= vm_config['gocd_vm_builder']['kickstart_script']%> biosdevname=0 net.ifnames=0",
-			"<enter>"
+        "<esc><esc><enter><wait>",
+        "/install/vmlinuz noapic ",
+        "preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ubuntu-14-x86_64/preseed.cfg ",
+        "debian-installer=en_US auto locale=en_US kbd-chooser/method=us ",
+        "hostname=ubuntu-14 ",
+        "fb=false debconf/frontend=noninteractive ",
+        "keyboard-configuration/modelcode=SKIP keyboard-configuration/layout=USA ",
+        "keyboard-configuration/variant=USA console-setup/ask_detect=false ",
+        "initrd=/install/initrd.gz -- <enter>"
 		],
-		"shutdown_command": "shutdown -P now",
+		"shutdown_command": "sudo -S shutdown -P now",
 		"qemuargs":[
 			["-m", "{{user `memory`}}"]
 		]
@@ -52,13 +58,9 @@
 		"type": "shell",
 		"override": {
 			"qemu": {
-				"execute_command": "sh '{{.Path}}'",
+				"execute_command": "echo <%= ENV['SSH_PASSWORD'] || vm_config['gocd_vm_builder']['ssh_password'] %> | sudo -S sh '{{.Path}}'",
 				"scripts": [
-          "scripts/centos<%= vm_distro_version.to_i.to_s %>/base.sh",
-          "scripts/centos<%= vm_distro_version.to_i.to_s %>/networks.sh",<% if ENV['CLOUD_INIT'] || vm_config['gocd_vm_builder']['with_cloud_init'] %>
-          "scripts/centos<%= vm_distro_version.to_i.to_s %>/cloud-init.sh", <% end %><% if ENV['GOCD_AGENT'] || vm_config['gocd_vm_builder']['with_gocd_agent'] %>
-          "scripts/centos<%= vm_distro_version.to_i.to_s %>/gocd_agent.sh", <% end %>
-          "scripts/centos<%= vm_distro_version.to_i.to_s %>/cleanup.sh"				]
+          "scripts/ubuntu<%= vm_distro_version.to_i.to_s %>/cloud-init.sh", <% end %><% if ENV['GOCD_AGENT'] || vm_config['gocd_vm_builder']['with_gocd_agent'] %>
 			}
 		}
 	}]
