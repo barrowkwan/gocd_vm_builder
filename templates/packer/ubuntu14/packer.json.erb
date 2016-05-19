@@ -61,6 +61,7 @@
 				"execute_command": "echo <%= ENV['SSH_PASSWORD'] || vm_config['gocd_vm_builder']['ssh_password'] %> | sudo -S sh '{{.Path}}'",
 				"scripts": [
           "scripts/ubuntu<%= vm_distro_version.to_i.to_s %>/cloud-init.sh", <% end %><% if ENV['GOCD_AGENT'] || vm_config['gocd_vm_builder']['with_gocd_agent'] %>
+          "scripts/centos<%= vm_distro_version.to_i.to_s %>/gocd_agent.sh", <% end %>
 			}
 		}
 	}]

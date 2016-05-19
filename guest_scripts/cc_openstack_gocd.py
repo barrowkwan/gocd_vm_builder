@@ -69,7 +69,7 @@ def handle(name, cfg, cloud, log, _args):
       elif key.startswith(go_server_prefix):
         replace_config(go_server_config,key[len(go_server_prefix):],md['meta'][key])
     
-    replace_config(go_server_conifg,"agent.auto.register.elasticAgent.agentId",md['instance-id'])
+    replace_config(go_server_config,"agent.auto.register.elasticAgent.agentId",md['instance-id'])
         
     if os.path.exists(go_server_config):
       util.chownbyname(go_server_config,"go","go")
