@@ -62,6 +62,7 @@
 				"scripts": [
           <% if ENV['CLOUD_INIT'] || vm_config['gocd_vm_builder']['with_cloud_init'] %>"scripts/ubuntu<%= vm_distro_version.to_i.to_s %>/cloud-init.sh",
           <% end %><% if ENV['GOCD_AGENT'] || vm_config['gocd_vm_builder']['with_gocd_agent'] %>"scripts/ubuntu<%= vm_distro_version.to_i.to_s %>/gocd_agent.sh", <% end %>
+          "scripts/ubuntu<%= vm_distro_version.to_i.to_s %>/cleanup.sh"				]
 			}
 		}
 	}]
